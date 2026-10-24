@@ -13,7 +13,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -24,8 +24,6 @@ import {
 import LoadingStep from "@/modules/playground/components/loader";
 import {PlaygroundEditor} from "@/modules/playground/components/playground-editor";
 import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
-import ToggleAI from "@/modules/playground/components/toggle-ai";
-import { useAISuggestions } from "@/modules/playground/hooks/useAISuggestion";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { findFilePath } from "@/modules/playground/lib";
@@ -37,7 +35,6 @@ import WebContainerPreview from "@/modules/webcontainers/components/webcontainer
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
 import {
   AlertCircle,
-  Bot,
   FileText,
   FolderOpen,
   Save,
@@ -60,8 +57,6 @@ const MainPlaygroundPage = () => {
 
   const { playgroundData, templateData, isLoading, error, saveTemplateData } =
     usePlayground(id);
-
-    const aiSuggestions = useAISuggestions();
 
   const {
     setTemplateData,
@@ -228,8 +223,8 @@ const MainPlaygroundPage = () => {
           }
         }
 
-           const newTemplateData = await saveTemplateData(updatedTemplateData);
-        setTemplateData(newTemplateData || updatedTemplateData);
+          await saveTemplateData(updatedTemplateData);
+          setTemplateData(updatedTemplateData);
 // Update open files
         const updatedOpenFiles = openFiles.map((f) =>
           f.id === targetFileId
@@ -350,70 +345,65 @@ const MainPlaygroundPage = () => {
   }
 
   return (
-    <TooltipProvider>
-      <>
-        <TemplateFileTree
-          data={templateData!}
-          onFileSelect={handleFileSelect}
-          selectedFile={activeFile}
-          title="File Explorer"
-          onAddFile={wrappedHandleAddFile}
-          onAddFolder={wrappedHandleAddFolder}
-          onDeleteFile={wrappedHandleDeleteFile}
-          onDeleteFolder={wrappedHandleDeleteFolder}
-          onRenameFile={wrappedHandleRenameFile}
-          onRenameFolder={wrappedHandleRenameFolder}
-        />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+    <SidebarProvider>
+      <TooltipProvider>
+        <>
+          <TemplateFileTree
+            data={templateData!}
+            onFileSelect={handleFileSelect}
+            selectedFile={activeFile}
+            title="File Explorer"
+            onAddFile={wrappedHandleAddFile}
+            onAddFolder={wrappedHandleAddFolder}
+            onDeleteFile={wrappedHandleDeleteFile}
+            onDeleteFolder={wrappedHandleDeleteFolder}
+            onRenameFile={wrappedHandleRenameFile}
+            onRenameFolder={wrappedHandleRenameFolder}
+          />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-2 h-4" />
 
-            <div className="flex flex-1 items-center gap-2">
-              <div className="flex flex-col flex-1">
-                <h1 className="text-sm font-medium">
-                  {playgroundData?.title || "Code Playground"}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {openFiles.length} File(s) Open
-                  {hasUnsavedChanges && " • Unsaved changes"}
-                </p>
-              </div>
+              <div className="flex flex-1 items-center gap-2">
+                <div className="flex flex-col flex-1">
+                  <h1 className="text-sm font-medium">
+                    {playgroundData?.title || "Code Playground"}
+                  </h1>
+                  <p className="text-xs text-muted-foreground">
+                    {openFiles.length} File(s) Open
+                    {hasUnsavedChanges && " • Unsaved changes"}
+                  </p>
+                </div>
 
-              <div className="flex items-center gap-1">
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleSave()}
-                      disabled={!activeFile || !activeFile.hasUnsavedChanges}
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Save (Ctrl+S)</TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleSave()}
+                        disabled={!activeFile || !activeFile.hasUnsavedChanges}
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Save (Ctrl+S)</TooltipContent>
+                  </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleSaveAll}
-                      disabled={!hasUnsavedChanges}
-                    >
-                      <Save className="h-4 w-4" /> All
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Save All (Ctrl+Shift+S)</TooltipContent>
-                </Tooltip>
-
-               <ToggleAI
-                isEnabled={aiSuggestions.isEnabled}
-                onToggle={aiSuggestions.toggleEnabled}
-                suggestionLoading={aiSuggestions.isLoading}
-               />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleSaveAll}
+                        disabled={!hasUnsavedChanges}
+                      >
+                        <Save className="h-4 w-4" /> All
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Save All (Ctrl+Shift+S)</TooltipContent>
+                  </Tooltip>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -500,17 +490,6 @@ const MainPlaygroundPage = () => {
                         onContentChange={(value) => 
                           activeFileId && updateFileContent(activeFileId , value)
                         }
-                        suggestion={aiSuggestions.suggestion}
-                        suggestionLoading={aiSuggestions.isLoading}
-                        suggestionPosition={aiSuggestions.position}
-                        onAcceptSuggestion={(editor , monaco)=>aiSuggestions.acceptSuggestion(editor , monaco)}
-
-                          onRejectSuggestion={(editor) =>
-                          aiSuggestions.rejectSuggestion(editor)
-                        }
-                        onTriggerSuggestion={(type, editor) =>
-                          aiSuggestions.fetchSuggestion(type, editor)
-                        }
                       />
                     </ResizablePanel>
 
@@ -548,6 +527,7 @@ const MainPlaygroundPage = () => {
         </SidebarInset>
       </>
     </TooltipProvider>
+  </SidebarProvider>
   );
 };
 
