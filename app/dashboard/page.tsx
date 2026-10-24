@@ -1,11 +1,18 @@
 import { deleteProjectById, duplicateProjectById, editProjectById, getAllPlaygroundForUser } from "@/modules/dashboard/actions";
+import { currentUser } from "@/modules/auth/actions";
 import AddNewButton from "@/modules/dashboard/components/add-new";
 import AddRepo from "@/modules/dashboard/components/add-repo";
 import EmptyState from "@/modules/dashboard/components/empty-state";
 import ProjectTable from "@/modules/dashboard/components/project-table";
+import { redirect } from "next/navigation";
 import React from "react";
 
 const Page = async () => {
+  const user = await currentUser();
+  if (!user) {
+    redirect("/auth/sign-in");
+  }
+
   const playgrounds = await getAllPlaygroundForUser();
   console.log("Playgrounds:", playgrounds);
   return (
