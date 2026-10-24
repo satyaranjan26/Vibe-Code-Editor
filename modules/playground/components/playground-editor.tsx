@@ -220,7 +220,7 @@ export const PlaygroundEditor = ({
       clearCurrentSuggestion()
 
       // Call the parent's accept handler
-      onAcceptSuggestion(editor, monaco)
+      onAcceptSuggestion?.(editor, monaco)
 
       return true
     } catch (error) {
@@ -341,7 +341,7 @@ export const PlaygroundEditor = ({
     // Keyboard shortcuts
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, () => {
       console.log("Ctrl+Space pressed, triggering suggestion")
-      onTriggerSuggestion("completion", editor)
+      onTriggerSuggestion?.("completion", editor)
     })
 
     // CRITICAL: Override Tab key with high priority and prevent default Monaco behavior
@@ -395,7 +395,7 @@ export const PlaygroundEditor = ({
     editor.addCommand(monaco.KeyCode.Escape, () => {
       console.log("Escape pressed")
       if (currentSuggestionRef.current) {
-        onRejectSuggestion(editor)
+        onRejectSuggestion?.(editor)
         clearCurrentSuggestion()
       }
     })
@@ -418,7 +418,7 @@ export const PlaygroundEditor = ({
         ) {
           console.log("Cursor moved away from suggestion, clearing")
           clearCurrentSuggestion()
-          onRejectSuggestion(editor)
+          onRejectSuggestion?.(editor)
         }
       }
 
@@ -431,7 +431,7 @@ export const PlaygroundEditor = ({
 
         // Trigger suggestion with a delay
         suggestionTimeoutRef.current = setTimeout(() => {
-          onTriggerSuggestion("completion", editor)
+          onTriggerSuggestion?.("completion", editor)
         }, 300)
       }
     })
@@ -475,7 +475,7 @@ export const PlaygroundEditor = ({
         ) {
           setTimeout(() => {
             if (editorRef.current && !currentSuggestionRef.current && !suggestionLoading) {
-              onTriggerSuggestion("completion", editor)
+              onTriggerSuggestion?.("completion", editor)
             }
           }, 100) // Small delay to let the change settle
         }
